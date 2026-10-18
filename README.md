@@ -73,6 +73,40 @@ python -m dts_monaco
 - A CAN adapter: PT3G-VCI or USB-to-CAN dongle
 - Python 3.10+ (for development)
 
+## Packaging for Windows
+
+The end-user deliverable is a standalone Windows executable (`dtm.exe`)
+built with PyInstaller. PyInstaller **never cross-compiles**, so the exe must
+be built on a Windows machine — never from Linux.
+
+### Build on Windows
+
+```powershell
+# 1. Create and populate the environment
+python -m venv venv
+venv\Scripts\activate
+pip install -e ".[gui]"
+pip install pyinstaller
+
+# 2. Build the one-file GUI executable
+pyinstaller ^
+  --noconfirm --onefile --windowed ^
+  --name dtm ^
+  --collect-all dts_monaco ^
+  --hidden-import dts_monaco.config ^
+  --paths venv\Lib\site-packages ^
+  src\dts_monaco\__main__.py
+```
+
+Notes:
+
+- `--windowed` suppresses the console window for the GUI app.
+- `--paths` points PyInstaller at the virtualenv's site-packages so the
+  editable install's dependencies (python-can, py-uds, pydantic) are bundled.
+- PySide6 and its Qt plugins often need extra runtime hooks to locate the
+  platform plugin. Use a PySide6-compatible `pyinstaller-hooks-contrib` and
+  validate the produced exe on a clean Windows 10/11 machine before shipping.
+
 ## License
 GPL-3.0
 ```

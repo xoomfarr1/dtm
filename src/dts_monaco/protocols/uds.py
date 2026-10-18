@@ -92,6 +92,10 @@ class ServiceId(IntEnum):
     READ_MEMORY_BY_ADDR_N = 0x3c
     READ_SCALING_DATA_N = 0x3e
     READ_DATA_BY_PERIODIC_ID_N = 0x3f
+    READ_SCALING_DATA_SEC = 0x24
+    READ_DATA_BY_PERIODIC_ID_SEC = 0x2a
+    DYNAMICALLY_DEFINE_DATA_IDENTIFIER = 0x2c
+    CONTROL_DTC_SETTING = 0x38
     WRITE_DATA_BY_ID = 0x42
     READ_DTC_BY_STORED_NAME = 0x50
     CLEAR_DTC_INFO_N = 0x51
@@ -167,7 +171,12 @@ class UdsClient:
             ServiceId.READ_MEMORY_BY_ADDR_N: self._handle_read_memory_n,
             ServiceId.READ_SCALING_DATA_N: self._handle_read_scaling_data_n,
             ServiceId.READ_DATA_BY_PERIODIC_ID_N: self._handle_read_periodic_id_n,
+            ServiceId.READ_SCALING_DATA_SEC: self._handle_read_scaling_data_sec,
+            ServiceId.READ_DATA_BY_PERIODIC_ID_SEC: self._handle_read_periodic_id_sec,
             ServiceId.CLEAR_DTC_INFO_N: self._handle_clear_dtc_n,
+            ServiceId.READ_DTC_BY_STORED_NAME: self._handle_read_dtc_by_stored_name,
+            ServiceId.DYNAMICALLY_DEFINE_DATA_IDENTIFIER: self._handle_dyn_def_data,
+            ServiceId.CONTROL_DTC_SETTING: self._handle_control_dtc_setting,
             ServiceId.WRITE_MEMORY_BY_ADDR: self._handle_write_memory,
             ServiceId.TRANSFER_DATA_N: self._handle_transfer_data_n,
             ServiceId.ROUTINE_CONTROL_BY_KEY: self._handle_routine_control_by_key,
@@ -196,9 +205,11 @@ class UdsClient:
                    f"Sorry, this tool doesn't support service {sid:#04x}."
 
         response, comment = handler(request, self.context)
-        # If the ECU answered with a negative response (0x7F), wrap it.
-        if response and response[0] == 0x7F:
-            return response, comment
+        # Positive responses echo the requested service ID (e.g. 0x22 for ReadDataByIdentifier).
+        # Protocol convention: re-tag every positive response with 0x40 so business logic
+        # only has to handle one response service ID. Negative responses (0x7F) are untouched.
+        if response and response[0] != 0x7F:
+            response = bytes([0x40]) + response[1:]
         return response, comment
 
     # ------------------------------------------------------------------
@@ -425,7 +436,8 @@ class UdsClient:
 
     def _handle_read_periodic_id(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x2e: read data by periodic identifier
-        return bytes([0x2e, 0x00, 0x00]), "Reading data by periodic identifier. This is like reading a sensor value that gets updated quickly, such as engine RPM."
+        return bytes([0x2e, 0x00, 0x00]) + b"\x00\x01", \
+               "Reading data by periodic identifier. This is like reading a sensor value that gets updated quickly, such as engine RPM. The ECU returned dummy payload 00 01."
 
     def _handle_read_scaling_data(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x2f: read scaling data
@@ -447,11 +459,28 @@ class UdsClient:
 
     def _handle_diag_record(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x34
-        return bytes([0x34, 0x00]), "DiagnosticRecord: accessing recorded DTCs, runs, and other diagnostic history. This is like reading a car's flight log."
+        return bytes([0x34, 0x00]), "Reading diagnostic record..."
 
-    def _handle_read_data_n(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
-        # 0x3b: ReadDataByIdentifier with security access
-        return bytes([0x3b, 0x00, 0x00]), "ReadDataByIdentifierN: the secure version of reading data. Needs security access first."
+    def _handle_dyn_def_data(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x2c: DynamicallyDefineDataIdentifier
+        if len(req) < 2:
+            return self._negative_response(Nrc.INCORRECT_MESSAGE_LENGTH_OR_MISSING_BYTE), \
+                   "DynamicallyDefineDataIdentifier needs a sub-function."
+        sub = req[1]
+        if sub == 0x00:
+            return bytes([0x2c, 0x00, 0x00]), "DynamicallyDefineDataIdentifier: the ECU has registered a new data identifier at runtime. We acknowledge."
+        else:
+            return self._negative_response(Nrc.SUB_FUNCTION_NOT_SUPPORTED), \
+                   f"DynamicallyDefineDataIdentifier sub-function {sub:#04x} not supported."
+
+    def _handle_read_dtc_by_stored_name(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x50: ReadDTCByStoredName
+        if len(req) < 3:
+            return self._negative_response(Nrc.INCORRECT_MESSAGE_LENGTH_OR_MISSING_BYTE), \
+                   "ReadDTCByStoredName needs a 2-byte DTC number."
+        dtc = int.from_bytes(req[1:3], "big")
+        return bytes([0x50, 0x00, 0x00]) + req[1:3], \
+               f"ReadDTCByStoredName: returning info for DTC {dtc:#06x} from the {self.ecu_name}'s fault memory."
 
     def _handle_read_memory_n(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x3c
@@ -461,13 +490,53 @@ class UdsClient:
         # 0x3e
         return bytes([0x3e, 0x00, 0x00]), "ReadScalingDataByIdentifierN: secure scaling data read."
 
+    def _read_scaling_did_dummy(self, did: int) -> int:
+        """Return a plausible scaling value for a DataIdentifier."""
+        if did == 0x2001:
+            return 1
+        return 0x0
+
+    def _handle_read_scaling_data_sec(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x24: ReadScalingDataByIdentifierN (security version)
+        if len(req) < 3:
+            return self._negative_response(Nrc.INCORRECT_MESSAGE_LENGTH_OR_MISSING_BYTE), \
+                   "ReadScalingDataByIdentifierN needs a 2-byte DataIdentifier."
+        did = int.from_bytes(req[1:3], "big")
+        value = self._read_scaling_did_dummy(did)
+        payload = value.to_bytes(4, "big", signed=True)
+        return bytes([0x24, 0x00, 0x00]) + payload, \
+               f"Secure ReadScalingDataByIdentifier: read scaling/fudge-factor data for item {did:#06x}. The ECU answered: {value}."
+
     def _handle_read_periodic_id_n(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x3f
         return bytes([0x3f, 0x00, 0x00]), "ReadDataByPeriodicIdentifierN: secure periodic identifier read."
 
+    def _handle_read_periodic_id_sec(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x2a: ReadDataByPeriodicIdentifierN (security version)
+        return bytes([0x2a, 0x00, 0x00, 0x00, 0x01]), \
+               "Secure ReadDataByPeriodicIdentifier: reading a periodically updated data item with security access. Response payload is a dummy (00 01)."
+
+    def _handle_read_data_n(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x3b: ReadDataByIdentifier with security access
+        return bytes([0x3b, 0x00, 0x00]), "ReadDataByIdentifierN: the secure version of reading data. Needs security access first."
+
     def _handle_clear_dtc_n(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x51: ClearDiagnosticInformationN
         return bytes([0x51, 0x00, 0x00]), "ClearDiagnosticInformationN: secure clear of fault codes."
+
+    def _handle_control_dtc_setting(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
+        # 0x38: ControlDTCSetting
+        if len(req) < 2:
+            return self._negative_response(Nrc.INCORRECT_MESSAGE_LENGTH_OR_MISSING_BYTE), \
+                   "ControlDTCSetting needs a sub-function."
+        sub = req[1]
+        if sub == 0x01:
+            return bytes([0x38, 0x00, 0x00]), "ControlDTCSetting: enabled the ECU's fault-code recording (DTCs will now be logged)."
+        elif sub == 0x02:
+            return bytes([0x38, 0x00, 0x00]), "ControlDTCSetting: disabled the ECU's fault-code recording. No new DTCs will be saved while this is on."
+        else:
+            return self._negative_response(Nrc.SUB_FUNCTION_NOT_SUPPORTED), \
+                   f"ControlDTCSetting sub-function {sub:#04x} not supported."
 
     def _handle_write_memory(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x5d: WriteMemoryByAddress
@@ -475,21 +544,19 @@ class UdsClient:
             return self._negative_response(Nrc.INCORRECT_MESSAGE_LENGTH_OR_MISSING_BYTE), \
                    "WriteMemoryByAddress needs sub-function, offset, and count."
         sub = req[1]
-        if sub == 0x02:
+        if sub == 0x01:
+            # Write memory by address
             offset = int.from_bytes(req[2:4], "big")
             count = int.from_bytes(req[4:6], "big")
             data = self._write_memory_dummy(offset, count)
             return bytes([0x5d, 0x00]) + data, \
                    f"Writing {count} bytes at memory address {offset:#06x} (WriteMemoryByAddress). This is a direct write to the ECU's memory. With great power comes great responsibility — double-check your offsets!"
+        elif sub == 0x80:
+            # Send additional data (continue a multi-packet write)
+            return bytes([0x5d, 0x00, 0x00]), "Send additional data — continuing a multi-packet memory write."
         else:
             return self._negative_response(Nrc.SUB_FUNCTION_NOT_SUPPORTED), \
                    f"WriteMemoryByAddress sub-function {sub:#04x} not supported."
-
-        sub = req[1]
-        if sub == 0x01:
-            return bytes([0x7b, 0x00]), "UploadRequest by name is a secure way to ask the ECU to send a file. Yes, we're ready."
-        # 0x71: TransferData with security access
-        return bytes([0x71, 0x00, 0x00]), "TransferData with security access."
 
     def _handle_routine_control_by_key(self, req: bytes, ctx: SessionContext) -> Tuple[bytes, str]:
         # 0x77
