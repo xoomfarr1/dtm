@@ -46,7 +46,6 @@ venv\Scripts\pyinstaller ^
     --collect-all dts_monaco ^
     --hidden-import dts_monaco.config ^
     --paths venv\Lib\site-packages ^
-    --icon=build\icon.ico ^
     src\dts_monaco\__main__.py
 
 if %errorlevel% neq 0 (
