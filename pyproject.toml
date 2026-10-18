@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dts-monaco"
+version = "1.0.0"
+description = "Open-source replacement for the Softing DTS Monaco engineering diagnostic toolchain"
+readme = "README.md"
+license = {text = "GPL-3.0"}
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "python-can",
+    "py-uds",
+    "pydantic",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.12.0"]
+dev = ["pytest", "pytest-cov"]
+
+[project.scripts]
+dtm = "dts_monaco.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,33 @@
+# Bootstrapped / packaging
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+*.spec
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config (may contain paths)
+src/dts_monaco/config.py
+
+# Logs
+*.log
+
+# Test data
+tests/fixtures/*.smr-d
+tests/fixtures/*.cbf
