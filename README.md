@@ -107,6 +107,12 @@ Notes:
   platform plugin. Use a PySide6-compatible `pyinstaller-hooks-contrib` and
   validate the produced exe on a clean Windows 10/11 machine before shipping.
 
+### Build scripts (for Windows)
+
+- `build_windows.bat` — double-clickable script that sets up the venv,
+  installs dependencies, runs PyInstaller, and verifies the build.
+- `build/dts_monaco.spec` — PyInstaller spec file for one-file builds.
+
 ## License
 GPL-3.0
 ```
