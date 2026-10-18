@@ -1,16 +1,16 @@
 @echo off
 rem ============================================================================
 rem  DTS-Monaco - PyInstaller Windows build script
-rem  Run this on Windows (not from Linux, PyInstaller cannot cross-compile)
+rem  Run this on Windows (not from Linux - PyInstaller cannot cross-compile)
 rem ============================================================================
 
 setlocal
 
-echo.
+echo("")
 echo ============================================
 echo  DTS-Monaco PyInstaller build
 echo ============================================
-echo.
+echo("")
 
 rem Check Python is available
 where python >nul 2>&1
@@ -55,12 +55,12 @@ if %errorlevel% neq 0 (
 )
 
 echo [4/4] Build complete!
-echo.
+echo("")
 echo Output directory: dist\dtm\
-echo.
+echo("")
 echo Next steps:
 echo   1. Test dtm.exe on a Windows machine (not this one)
 echo   2. Copy any vehicle data folders to C:\DTS_Monaco_Data\
 echo   3. Distribute the folder or create a Windows installer
-echo.
+echo("")
 pause
