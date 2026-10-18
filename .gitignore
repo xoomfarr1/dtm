@@ -31,3 +31,10 @@ src/dts_monaco/config.py
 # Test data
 tests/fixtures/*.smr-d
 tests/fixtures/*.cbf
+
+# --- Packaging artifacts ---
+packaging/release/
+packaging/dist/
+installer/release/
+installer/dist/
+

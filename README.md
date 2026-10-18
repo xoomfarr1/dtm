@@ -113,6 +113,58 @@ Notes:
   installs dependencies, runs PyInstaller, and verifies the build.
 - `build/dts_monaco.spec` — PyInstaller spec file for one-file builds.
 
+## Packaging — Windows toolchain
+DTS-Monaco is distributed as a standalone Windows executable (`dtm.exe`). PyInstaller
+cannot cross-compile from Linux, so the build must run on a Windows machine.
+
+The Windows toolchain lives in the `packaging/` directory and mirrors the
+structure used by mbtools-open:
+
+```
+packaging/
+  WIN_BUILD.md              — Step-by-step Windows build instructions
+  make_windows_exe.sh       — Shell script to build dtm.exe from Linux (Wine)
+  dts_monaco_windows.spec   — PyInstaller spec (one-folder + one-file)
+  README.md                 — Packaging guide for developers
+installer/
+  dts-monaco.nsi            — NSIS installer script
+  notes.md                  — NSIS build instructions
+build_windows.bat           — Simple Windows batch build script
+```
+
+### Quick start (Windows)
+
+1. Copy `build_windows.bat` to your Windows machine.
+2. Open Command Prompt in the DTS-Monaco folder.
+3. Run: `build_windows.bat`
+4. The executable is at `build\exe\dtm\dtm.exe` (one-folder) or `build\dist\dtm.exe` (one-file).
+
+### Method 2: Manual build
+
+```bat
+cd C:\Users\test1\dtm
+python -m venv venv
+venv\Scripts\activate
+pip install -e ".[gui,dev]"
+pip install pyinstaller
+pyinstaller --noconfirm --onefolder --windowed --name dtm --collect-all dts_monaco --hidden-import dts_monaco.config --paths venv\Lib\site-packages src\dts_monaco\__main__.py
+```
+
+### Method 3: Build from Linux (Wine)
+
+```bash
+bash packaging/make_windows_exe.sh --onefolder
+```
+
+### NSIS installer
+
+1. Build the executable (Method 1 or 2).
+2. Copy `dist\dtm\*` to the `installer/` source folder.
+3. Open `installer\dts-monaco.nsi` in NSISQt.exe and click Compile.
+4. The installer `dts-monaco_installer.exe` is created in the output directory.
+
+See `packaging\WIN_BUILD.md` and `installer\notes.md` for full details.
+
 ## License
 GPL-3.0
 ```
