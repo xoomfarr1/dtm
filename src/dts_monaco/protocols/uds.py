@@ -185,6 +185,7 @@ class UdsClient:
             ServiceId.UPLOAD_REQUEST_N: self._handle_upload_request_n,
             ServiceId.TRANSFER_DATA_BY_NAME: self._handle_transfer_data_by_name,
             ServiceId.TRANSFER_EXIT_N: self._handle_transfer_exit_n,
+            ServiceId.UPLOAD_REQUEST_BY_NAME: self._handle_upload_request_n,
         }
 
     # ------------------------------------------------------------------
