@@ -1,8 +1,8 @@
 @echo off
-REM ============================================================================
-REM  DTS-Monaco — PyInstaller Windows build script
-REM  Run this on Windows (not from Linux — PyInstaller never cross-compiles)
-REM ============================================================================
+rem ============================================================================
+rem  DTS-Monaco - PyInstaller Windows build script
+rem  Run this on Windows (not from Linux, PyInstaller cannot cross-compile)
+rem ============================================================================
 
 setlocal
 
@@ -12,7 +12,7 @@ echo  DTS-Monaco PyInstaller build
 echo ============================================
 echo.
 
-REM Check Python is available
+rem Check Python is available
 where python >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Python not found. Install Python 3.10+ from python.org
@@ -21,7 +21,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM Check we're on Windows
+rem Check we're on Windows
 if not "%OS%" == "Windows_NT" (
     echo [ERROR] This script must run on Windows (PyInstaller cannot cross-compile).
     pause
