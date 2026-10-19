@@ -46,8 +46,6 @@ VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
 ; UI settings
 ; ---------------------------------------------------------------------------
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEFINISHPAGE_BITMAP "installer\banner.bmp"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "installer\banner.bmp"
 !define MUI_INSTALLDIR_SMALL
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 
