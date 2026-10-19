@@ -6,11 +6,10 @@
 ; data folders into a single .exe file that users can run on any Windows PC.
 ;
 ; Usage:
-;   1. Build the dtm.exe with PyInstaller (see WIN_BUILD.md)
-;   2. Place dtm.exe in the installer source folder
-;   3. Compile this script with NSIS:
-;       makensis.exe dts-monaco.nsi
-;   4. The installer will be in the output directory
+;   1. Copy this entire 'installer_source' folder to your Windows machine
+;   2. Open Command Prompt in that folder
+;   3. Run: makensis.exe dts-monaco.nsi
+;   4. The installer will be in the same folder
 ; ============================================================================
 
 ; ---------------------------------------------------------------------------
@@ -43,7 +42,7 @@ Section "Install DTS-Monaco"
 
   ; Copy the executable and required files
   SetOutPath "$INSTDIR"
-  File /r "dist\dtm\*" ; Adjust path based on one-folder or one-file build
+  File /r "installer_source\dtm\**" ; Adjust path based on one-folder or one-file build
   File "README.md"
   File "LICENSE"
 
