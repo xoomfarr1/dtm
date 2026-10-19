@@ -17,8 +17,9 @@
 ; Header section
 ; ---------------------------------------------------------------------------
 ; NSIS version (2.x recommended)
-!include "MUI2.nsh"
-!include "FileFunc.nsh"
+; MUI2.nsh is located in the NSIS installation Contrib\Modern UI 2 folder
+!include "${NSISDIR}\Contrib\Modern UI 2\MUI2.nsh"
+!include "${NSISDIR}\Include\FileFunc.nsh"
 
 ; ---------------------------------------------------------------------------
 ; Installer metadata
@@ -36,7 +37,7 @@ RequestExecutionLevel admin
 VIProductVersion "1.0.0.0"
 VIAddVersionKey "ProductName" "DTS-Monaco"
 VIAddVersionKey "CompanyName" "DTS-Monaco Contributors"
-VIAddVersionKey "FileDescription" "DTS-Monaco — Open-source vehicle ECU diagnostics"
+VIAddVersionKey "FileDescription" "DTS-Monaco - Open-source vehicle ECU diagnostics"
 VIAddVersionKey "ProductVersion" "1.0.0"
 VIAddVersionKey "LegalCopyright" "Copyright (C) 2026 DTS-Monaco Contributors"
 VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
@@ -49,9 +50,6 @@ VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "installer\banner.bmp"
 !define MUI_INSTALLDIR_SMALL
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-
-; MUI2 page ordering
-!insertmacro MUI_PAGE_HEADER
 
 ; ---------------------------------------------------------------------------
 ; Page definitions
@@ -69,7 +67,6 @@ VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller info page
-!insertmacro MUI_UNPAGE确认
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; ---------------------------------------------------------------------------
@@ -84,9 +81,8 @@ Section "Install DTS-Monaco"
   File /r "dist\dtm\*" ; Adjust path based on one-folder or one-file build
   File "README.md"
   File "LICENSE"
-  File /r "packaging\docs\*"
 
-  ; Create a desktop shortcut
+  ; Create desktop shortcut
   CreateShortcut "$DESKTOP\DTS-Monaco.lnk" "$INSTDIR\dtm.exe"
   SetShellVarContext current
   CreateShortcut "$SMPROGRAMS\DTS-Monaco\DTS-Monaco.lnk" "$INSTDIR\dtm.exe"
@@ -134,7 +130,7 @@ Section "Uninstaller stub"
 SectionEnd
 
 ; ---------------------------------------------------------------------------
-; Before install — check admin rights
+; Before install - check admin rights
 ; ---------------------------------------------------------------------------
 Function .onInit
   ; Check for admin privileges
