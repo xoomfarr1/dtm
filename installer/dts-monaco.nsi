@@ -52,8 +52,10 @@ VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
 ; ---------------------------------------------------------------------------
 ; Page definitions
 ; ---------------------------------------------------------------------------
-; Welcome page
-!insertmacro MUI_PAGE_WELCOME
+; Simple install page (no bitmaps required)
+!define MUI_WELCOMETITLE "DTS-Monaco"
+!define MUI_WELCOMEBUTTONS
+!define MUI_EXCLUDEDPLACES "${MUI_EXCLUDEDPLACES}"
 
 ; Directory page (where to install)
 !insertmacro MUI_PAGE_DIRECTORY
