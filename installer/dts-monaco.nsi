@@ -14,14 +14,6 @@
 ; ============================================================================
 
 ; ---------------------------------------------------------------------------
-; Header section
-; ---------------------------------------------------------------------------
-; NSIS version (2.x recommended)
-; MUI2.nsh is located in the NSIS installation Contrib\Modern UI 2 folder
-!include "${NSISDIR}\Contrib\Modern UI 2\MUI2.nsh"
-!include "${NSISDIR}\Include\FileFunc.nsh"
-
-; ---------------------------------------------------------------------------
 ; Installer metadata
 ; ---------------------------------------------------------------------------
 Name "DTS-Monaco"
@@ -41,33 +33,6 @@ VIAddVersionKey "FileDescription" "DTS-Monaco - Open-source vehicle ECU diagnost
 VIAddVersionKey "ProductVersion" "1.0.0"
 VIAddVersionKey "LegalCopyright" "Copyright (C) 2026 DTS-Monaco Contributors"
 VIAddVersionKey "Comments" "Open-source replacement for Softing DTS Monaco"
-
-; ---------------------------------------------------------------------------
-; UI settings
-; ---------------------------------------------------------------------------
-!define MUI_ABORTWARNING
-!define MUI_INSTALLDIR_SMALL
-!define MUI_FINISHPAGE_NOAUTOCLOSE
-
-; ---------------------------------------------------------------------------
-; Page definitions
-; ---------------------------------------------------------------------------
-; Simple install page (no bitmaps required)
-!define MUI_WELCOMETITLE "DTS-Monaco"
-!define MUI_WELCOMEBUTTONS
-!define MUI_EXCLUDEDPLACES "${MUI_EXCLUDEDPLACES}"
-
-; Directory page (where to install)
-!insertmacro MUI_PAGE_DIRECTORY
-
-; Installer will check for admin privileges
-!insertmacro MUI_PAGE_INSTFILES
-
-; Finish page
-!insertmacro MUI_PAGE_FINISH
-
-; Uninstaller info page
-!insertmacro MUI_UNPAGE_INSTFILES
 
 ; ---------------------------------------------------------------------------
 ; Installer sections
