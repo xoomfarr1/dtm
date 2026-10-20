@@ -1,22 +1,23 @@
-# dts-monaco
-An open-source engineering diagnostic toolchain for vehicle ECUs, designed as
-a free, safe alternative to the commercial Softing DTS Monaco.
+# DTS-Monaco
 
-It lets you talk to vehicle computers (ECUs) over CAN/UDS:
-- Read fault codes (DTCs)
-- Read and write variant coding (SA codes, parameters)
-- Flash ECU firmware (SF11/SF03 upload)
-- Monitor the bus (see every CAN message)
+An open-source diagnostic toolchain for vehicle ECUs — a free, safe alternative to commercial boxes like Softing DTS Monaco.
+
+You install it when you need to actually talk to a car's computer. Plug in a
+CAN adapter and it lets you:
+
+- Read fault codes (DTCs) from the ECU
+- Read and write variant coding — SA codes, parameters, the stored settings
+- Flash ECU firmware (SF11 / SF03 upload)
+- Monitor the bus — watch every CAN message go by
 - Run diagnostic routines
 
-Built with:
-- Python 3.10+
-- python-can (hardware abstraction)
-- PySide6 (Windows GUI)
-- UDS (ISO 14229) protocol stack
+It's built on Python 3.10+, `python-can` (so the hardware doesn't dictate your
+workflow), `PySide6` (a simple Windows GUI), and the `UDS` (ISO 14229) protocol
+stack.
 
-## Project structure
-```
+## What's in here
+
+```text
 src/dts_monaco/
   __init__.py          Package metadata
   __main__.py          CLI entry point (python -m dts_monaco)
@@ -41,7 +42,8 @@ src/dts_monaco/
     simple_window.py   Main window with tabs + tutorial
 ```
 
-## Quick start (development)
+## Get it running (development)
+
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -49,37 +51,37 @@ pip install -e ".[gui,dev]"
 python -m dts_monaco
 ```
 
-## How to use
-1. Launch the app
-2. Press "1. Connect to my car" to connect to your vehicle
-3. Select a function from the tabs:
-   - Read fault codes
-   - Read / write car settings
-   - Watch the car talk (bus monitor)
-   - Flash ECU software
-4. Press "Done" to exit
+## Using it, day to day
+
+1. Launch the app.
+2. Press "1. Connect to my car" to connect to your vehicle.
+3. Pick a function from the tabs — read fault codes, read / write car settings,
+   watch the car talk (bus monitor), or flash ECU software.
+4. Press "Done" to exit.
 
 ## Legal
+
 - This open-source tool provides the *communication stack* and *tooling*.
 - The proprietary data files (CBF/SMR-D with vehicle-specific coding tables)
   are **licensed separately** by the manufacturer (e.g., Softing, Mercedes).
-- You must source the appropriate vehicle data files through proper
-  channels (e.g., your vehicle's OEM diagnostics package).
-- This tool is for educational and professional engineering use.
-  Always back up your files before making changes.
+  You source the appropriate vehicle data files through proper channels
+  (e.g., your vehicle's OEM diagnostics package).
+- For educational and professional engineering use. Always back up your files
+  before making changes.
 
-## Environment requirements
+## What you need
+
 - Windows 10/11 (for the end-user GUI)
 - A CAN adapter: PT3G-VCI or USB-to-CAN dongle
 - Python 3.10+ (for development)
 
-## Packaging for Windows
+## Building the Windows executable
 
-The end-user deliverable is a standalone Windows executable (`dtm.exe`)
-built with PyInstaller. PyInstaller **never cross-compiles**, so the exe must
-be built on a Windows machine — never from Linux.
+The end-user deliverable is a standalone Windows executable (`dtm.exe`) built
+with PyInstaller. PyInstaller **never cross-compiles**, so the exe has to be
+built on a Windows machine — never from Linux.
 
-### Build on Windows
+### Build it on Windows
 
 ```powershell
 # 1. Create and populate the environment
@@ -109,75 +111,30 @@ Notes:
 
 ### Build scripts (for Windows)
 
-- `build_windows.bat` — double-clickable script that sets up the venv,
-  installs dependencies, runs PyInstaller, and verifies the build.
+- `build_windows.bat` — double-clickable script that sets up the venv, installs
+  dependencies, runs PyInstaller, and verifies the build.
 - `build/dts_monaco.spec` — PyInstaller spec file for one-file builds.
 
-## Packaging — Windows toolchain
+## Packaging — the Windows toolchain
+
 DTS-Monaco is distributed as a standalone Windows executable (`dtm.exe`). PyInstaller
-cannot cross-compile from Linux, so the build must run on a Windows machine.
+can't cross-compile from Linux, so the build has to run on Windows.
 
 The Windows toolchain lives in the `packaging/` directory and mirrors the
 structure used by mbtools-open:
 
-```
+```text
 packaging/
   WIN_BUILD.md              — Step-by-step Windows build instructions
   make_windows_exe.sh       — Shell script to build dtm.exe from Linux (Wine)
   dts_monaco_windows.spec   — PyInstaller spec (one-folder + one-file)
-  README.md                 — Packaging guide for developers
+  README.md                 — This file (packaging guide)
+```
+
+The installer lives in the parent `installer/` directory:
+
+```text
 installer/
-  dts-monaco.nsi            — NSIS installer script
-  notes.md                  — NSIS build instructions
-build_windows.bat           — Simple Windows batch build script
+  dts-monaco.nsi     — NSIS installer script
+  notes.md           — NSIS build instructions
 ```
-
-### Quick start (Windows)
-
-1. Copy `build_windows.bat` to your Windows machine.
-2. Open Command Prompt in the DTS-Monaco folder.
-3. Run: `build_windows.bat`
-4. The executable is at `build\exe\dtm\dtm.exe` (one-folder) or `build\dist\dtm.exe` (one-file).
-
-### Method 2: Manual build
-
-```bat
-cd C:\Users\test1\dtm
-python -m venv venv
-venv\Scripts\activate
-pip install -e ".[gui,dev]"
-pip install pyinstaller
-pyinstaller --noconfirm --onefolder --windowed --name dtm --collect-all dts_monaco --hidden-import dts_monaco.config --paths venv\Lib\site-packages src\dts_monaco\__main__.py
-```
-
-### Method 3: Build from Linux (Wine)
-
-```bash
-bash packaging/make_windows_exe.sh --onefolder
-```
-
-### NSIS installer
-
-1. Build the executable (Method 1 or 2).
-2. Copy `dist\dtm\*` to the `installer/` source folder.
-3. Open `installer\dts-monaco.nsi` in NSISQt.exe and click Compile.
-4. The installer `dts-monaco_installer.exe` is created in the output directory.
-
-See `packaging\WIN_BUILD.md` and `installer\notes.md` for full details.
-
-## License
-GPL-3.0
-```
-
-## Development
-For information on how to develop on this project, including hardware setup,
-protocol implementation, and adding new features, see the
-[development guide](docs/DEVELOPMENT.md).
-
-## Project status
-- **Phase 1 complete**: Protocol stack (CAN, ISO-TP, UDS), hardware
-  abstraction (PT3G-VCI, USB dongle), logic engine, data parser (SMR-D/ODX),
-  ELI5 explanation system, and simple Windows GUI.
-- **Phase 2**: Hook up to real hardware, implement full UDS service set,
-  add SDF/OTX test sequence runner, polish GUI.
-# dtm
