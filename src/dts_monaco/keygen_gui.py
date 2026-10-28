@@ -6,7 +6,10 @@ import sys
 
 from PySide6 import QtWidgets
 
-from .keygen import generate_key, get_hardware_id, parse_key, verify_key
+try:
+    from .keygen import generate_key, get_hardware_id, parse_key, verify_key
+except ImportError:
+    from keygen import generate_key, get_hardware_id, parse_key, verify_key
 
 
 class KeygenWindow(QtWidgets.QWidget):
